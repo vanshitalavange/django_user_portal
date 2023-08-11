@@ -1,33 +1,57 @@
 from .models import User
 from rest_framework import serializers
+from .constants import errors
 import re
 
 class UserSerializer(serializers.ModelSerializer):
-    email = serializers.CharField()
-    password = serializers.CharField()
-    mobile = serializers.CharField()
+
+    def validate(self,data):
+
+        email = data.get('email')
+        password = data.get('password')
+        mobile = data.get('mobile')
+
+        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$'
+        password_regex = r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$'
+        mobile_regex = r'^\d{10}$'
+
+        if re.match(email_regex,email) is None:
+            raise serializers.ValidationError(errors.get('INVALID_EMAIL_FORMAT'))
+        
+        if re.match(password_regex,password) is None:
+            raise serializers.ValidationError(errors.get('INVALID_PASSWORD_FORMAT'))
+        
+        if re.match(mobile_regex,mobile) is None:
+            raise serializers.ValidationError(errors.get('INVALID_MOBILE_FORMAT'))
+
+        return data 
     
-    def validate_email(self,value):
-        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$'
-
-        if re.match(pattern, value) is None:
-            raise serializers.ValidationError("invalid email format")
-        return value
-
-    
-    def validate_password(self,value):
-        pattern = r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$'
-
-        if re.match(pattern,value) is None:
-            raise serializers.ValidationError("Password must contain one uppercas, one lowercase, one special character, one digit and length should be 8")
-        return value 
-    
-    def validate_mobile(self,value):
-        pattern = r'^\d{10}$'
-        if re.match(pattern,value) is None:
-            raise serializers.ValidationError("mobile number is invalid")
-        return value
-
     class Meta:
         model = User
-        fields = ['email','password','mobile','username']
+        fields = ['id','email','password','mobile','username']
+
+class LoginSerializer(serializers.Serializer):
+
+    email = serializers.CharField()
+    password = serializers.CharField()
+
+
+    def validate(self,data):
+
+        email = data.get('email')
+        password = data.get('password')
+
+        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$'
+        password_regex = r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$'
+
+        if re.match(email_regex,email) is None:
+            raise serializers.ValidationError(errors.get('INVALID_EMAIL_FORMAT'))
+        
+        if re.match(password_regex,password) is None:
+            raise serializers.ValidationError(errors.get('INVALID_PASSWORD_FORMAT'))
+        
+        return data 
+
+
+
+
